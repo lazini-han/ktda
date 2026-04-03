@@ -6,12 +6,11 @@
 <title>2026 보드게임 페스타 - 작가존</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,'Noto Sans KR','Malgun Gothic',sans-serif;background:#f5f5f5;color:#333;padding-top:88px}
+  body{font-family:-apple-system,'Noto Sans KR','Malgun Gothic',sans-serif;background:#f5f5f5;color:#333}
+  .sticky-header{position:sticky;top:0;z-index:100;max-width:720px;margin:0 auto}
 
   /* 상단 바 */
   .top-bar{
-    position:fixed;top:0;left:0;right:0;z-index:100;
-    max-width:720px;margin:0 auto;
     background:#e91e63;color:#fff;
     font-size:15px;font-weight:700;
     padding:13px 16px;
@@ -64,9 +63,7 @@
 
   /* 서브 바 - 상단바 아래 고정 */
   .sub-bar{
-    position:fixed;top:46px;left:0;right:0;z-index:99;
     display:flex;background:#fff;border-bottom:1px solid #ddd;
-    max-width:720px;margin:0 auto;
     box-shadow:0 2px 6px rgba(0,0,0,.1);
   }
   .sub-bar button{
@@ -108,11 +105,12 @@
   .booth-card .game-name{font-size:15px;font-weight:700;margin-bottom:2px;line-height:1.3}
   .booth-card .booth-name{font-size:12px;color:#888;margin-bottom:6px}
   .booth-card .desc{font-size:12px;color:#555;line-height:1.5;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    max-height:2.95em;overflow:hidden;
+    transition:max-height .25s ease;
     cursor:pointer;
   }
   .booth-card.expanded .desc{
-    display:block;-webkit-line-clamp:unset;overflow:visible;
+    max-height:500px;
   }
 
   /* 지도 오버레이 */
@@ -155,18 +153,19 @@
 </head>
 <body>
 
-<header class="top-bar">
-  <span>2026 보드게임페스타 작가존</span>
-  <div class="sort-group">
-    <button class="sort-btn" data-sort="random">랜덤</button>
-    <button class="sort-btn" data-sort="number">번호순</button>
-  </div>
-</header>
-
-<nav class="sub-bar">
-  <button id="infoBtn">📢 행사 안내</button>
-  <button id="mapBtn">🗺️ 부스 지도</button>
-</nav>
+<div class="sticky-header">
+  <header class="top-bar">
+    <span>2026 보드게임페스타 작가존</span>
+    <div class="sort-group">
+      <button class="sort-btn" data-sort="random">랜덤</button>
+      <button class="sort-btn" data-sort="number">번호순</button>
+    </div>
+  </header>
+  <nav class="sub-bar">
+    <button id="infoBtn">📢 행사 안내</button>
+    <button id="mapBtn">🗺️ 부스 지도</button>
+  </nav>
+</div>
 
 <div class="content">
   <div class="banner"><img src="main.jpg" alt="2026 보드게임 페스타 작가존"></div>
