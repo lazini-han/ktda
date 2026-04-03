@@ -72,9 +72,10 @@
   .tab-bar button{
     flex:1;padding:12px 0;border:none;background:none;
     font-size:15px;font-weight:600;color:#999;cursor:pointer;
-    transition:color .2s,border-color .2s;
-    border-top:3px solid transparent;
+    transition:color .2s;
+    border-right:1px solid #ddd;
   }
+  .tab-bar button:last-child{border-right:none}
   .tab-bar button.active{color:#e91e63;border-top-color:#e91e63}
 
   /* 컨텐츠 영역 */
@@ -173,7 +174,7 @@
   <div class="info-overlay-inner">
     <button class="info-overlay-close" id="infoClose">&times;</button>
     <img class="info-festa" src="festa.gif" alt="2026 보드게임 페스타">
-    <h2>2026 보드게임페스타</h2>
+    <h2><a href="http://boardgamefesta.com/" target="_blank" style="color:inherit;text-decoration:none">2026 보드게임페스타</a></h2>
     <p>
       2026. 4. 11(토) ~ 2026. 4. 12(일)<br>
       (11일: 10시 ~ 18시)<br>
