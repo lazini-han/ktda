@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 보드게임 페스타 - 작가존</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,'Noto Sans KR','Malgun Gothic',sans-serif;background:#f5f5f5;color:#333;padding-bottom:70px;padding-top:48px}
+
+  /* 상단 바 */
+  .top-bar{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    max-width:720px;margin:0 auto;
+    background:#e91e63;color:#fff;
+    text-align:center;font-size:15px;font-weight:700;
+    padding:13px 16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .sort-group{
+    position:absolute;right:12px;
+    display:flex;gap:0;border-radius:8px;overflow:hidden;
+  }
+  .sort-btn{
+    background:rgba(255,255,255,.2);color:rgba(255,255,255,.6);
+    border:none;
+    font-size:11px;font-weight:700;
+    padding:5px 10px;cursor:pointer;
+    transition:background .15s,color .15s;
+  }
+  .sort-btn:active{background:rgba(255,255,255,.4)}
+  .sort-btn.active{background:#fff;color:#e91e63}
+
+  /* 메인 배너 */
+  .banner{width:100%;max-width:720px;margin:0 auto;display:block}
+  .banner img{width:100%;display:block}
+
+  /* 행사 안내 탭 */
+  .info-page{
+    min-height:calc(100vh - 48px - 56px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:32px 20px;text-align:center;
+  }
+  .info-page img{width:70%;max-width:360px;display:block;margin-bottom:24px}
+  .info-page h2{font-size:20px;font-weight:800;color:#e91e63;margin-bottom:16px}
+  .info-page p{font-size:14px;color:#555;line-height:1.8}
+
+  /* 탭 네비게이션 - 하단 고정 */
+  .tab-bar{
+    position:fixed;bottom:0;left:0;right:0;z-index:100;
+    display:flex;background:#fff;border-top:1px solid #ddd;
+    max-width:720px;margin:0 auto;
+    box-shadow:0 -2px 8px rgba(0,0,0,.1);
+  }
+  .tab-bar button{
+    flex:1;padding:12px 0;border:none;background:none;
+    font-size:15px;font-weight:600;color:#999;cursor:pointer;
+    transition:color .2s,border-color .2s;
+    border-top:3px solid transparent;
+  }
+  .tab-bar button.active{color:#e91e63;border-top-color:#e91e63}
+
+  /* 컨텐츠 영역 */
+  .content{max-width:720px;margin:0 auto}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  /* 부스 카드 그리드 */
+  .booth-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    padding:12px;
+    align-items:start;
+  }
+  .booth-card{
+    background:#fff;border-radius:12px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    transition:transform .15s;
+  }
+  .booth-card:active{transform:scale(.97)}
+  .booth-card .thumb{
+    width:100%;aspect-ratio:1/1;object-fit:cover;display:block;
+    background:#eee;
+  }
+  .booth-card .info{padding:10px 12px 14px}
+  .booth-card .booth-number{
+    display:inline-block;background:#e91e63;color:#fff;
+    font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;
+    margin-bottom:4px;
+  }
+  .booth-card .game-name{font-size:15px;font-weight:700;margin-bottom:2px;line-height:1.3}
+  .booth-card .booth-name{font-size:12px;color:#888;margin-bottom:6px}
+  .booth-card .desc{font-size:12px;color:#555;line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    cursor:pointer;
+  }
+  .booth-card.expanded .desc{
+    display:block;-webkit-line-clamp:unset;overflow:visible;
+  }
+
+  /* 지도 오버레이 */
+  .map-overlay{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,.7);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;
+    transition:opacity .25s;
+  }
+  .map-overlay.open{opacity:1;pointer-events:auto}
+  .map-overlay-inner{
+    width:92%;max-width:540px;background:#fff;border-radius:16px;
+    overflow:hidden;position:relative;
+    transform:translateY(30px);transition:transform .25s;
+  }
+  .map-overlay.open .map-overlay-inner{transform:translateY(0)}
+  .map-overlay-inner img{width:100%;display:block}
+  .map-overlay-info{text-align:center;padding:14px 12px;font-size:14px;color:#666;line-height:1.6}
+  .map-overlay-close{
+    position:absolute;top:10px;right:10px;
+    width:32px;height:32px;border-radius:50%;border:none;
+    background:rgba(0,0,0,.5);color:#fff;font-size:18px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+
+  /* 모바일 1열 */
+  @media(max-width:420px){
+    .booth-grid{grid-template-columns:1fr;gap:10px;padding:10px}
+    .booth-card{display:flex;flex-direction:row;align-items:stretch}
+    .booth-card .thumb{width:120px;min-width:120px;aspect-ratio:1/1;border-radius:0}
+    .booth-card .info{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px}
+  }
+
+  /* 태블릿 이상 3열 */
+  @media(min-width:600px){
+    .booth-grid{grid-template-columns:repeat(3,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<header class="top-bar">
+  <span>2026 보드게임페스타 작가존</span>
+  <div class="sort-group">
+    <button class="sort-btn" data-sort="random">랜덤</button>
+    <button class="sort-btn" data-sort="number">번호순</button>
+  </div>
+</header>
+
+<div class="content">
+  <div id="tab-info" class="tab-panel">
+    <div class="info-page">
+      <img src="festa.gif" alt="2026 보드게임 페스타">
+      <h2>2026 보드게임페스타</h2>
+      <p>
+        2026. 4. 11(토) ~ 2026. 4. 12(일)<br>
+        (11일: 10시 ~ 18시)<br>
+        (12일: 10시 ~ 17시)<br><br>
+        장소: 서울시 강남구 대치동<br>세텍(학여울역) 1, 2, 3전시실
+      </p>
+    </div>
+  </div>
+  <div id="tab-booths" class="tab-panel active">
+    <div class="banner"><img src="main.jpg" alt="2026 보드게임 페스타 작가존"></div>
+    <div class="booth-grid" id="boothGrid"></div>
+    <div class="banner"><img src="ktda.jpg" alt="한국 보드게임 작가 협회"></div>
+  </div>
+</div>
+
+<!-- 지도 오버레이 -->
+<div class="map-overlay" id="mapOverlay">
+  <div class="map-overlay-inner">
+    <button class="map-overlay-close" id="mapClose">&times;</button>
+    <img src="map.jpg" alt="부스 배치도">
+    <img src="map-hall3.png" alt="제3전시실 지도" style="border-top:1px solid #eee;width:50%;display:block;margin:0 auto">
+    <div class="map-overlay-info">
+      📍 세텍(SETEC) 제3전시실 - "보드게임 작가존"
+    </div>
+  </div>
+</div>
+
+<nav class="tab-bar">
+  <button data-tab="tab-info">📢 행사 안내</button>
+  <button data-tab="tab-booths" class="active">🎲 부스 목록</button>
+  <button id="mapBtn">🗺️ 부스 지도</button>
+</nav>
+
+<script>
+const booths=[
+{n:1,booth:"올린스튜디오",game:"에이전트 블랙",desc:"주변을 '탐문'해 정보를 캐내세요! 단서를 잡았다면 '저격'으로 정체를 밝혀낼 수 있습니다. 승자는 단 한 명! 스파이 추리게임",img:"thumbnails/1. 올린스튜디오 - 에이전트 블랙.jpg"},
+{n:2,booth:"실버건게임즈",game:"스윙앤롤",desc:"야구를 테마로 하는 1대1 보드게임입니다. 실제 야구의 투수 vs 타자 심리전을 쫄깃하게 살린 메커니즘과 아름다운 아트웍으로 몰입감 넘치는 야구를 경험할 수 있도록 제작되었습니다.",img:"thumbnails/2. 실버건게임즈 - 스윙앤롤.jpg"},
+{n:3,booth:"SNJ",game:"햄스터 갱스터",desc:"막타 피하기 + 덱빌딩! 카드 4장으로 치즈와 생존을 저울질, 타겟 숫자를 넘으면 탈락! 매 라운드 변하는 고양이 분노 속에서 욕심과 안전의 딜레마를 즐겨보세요!",img:"thumbnails/3. SNJ - 햄스터 갱스터.jpg"},
+{n:4,booth:"플루토게임즈",game:"프레지던트 메이커",desc:"나, 대선후보가 되었다?! 평행세계 대한민국에서 펼쳐지는 예측불가 대선 레이스!",img:"thumbnails/4. 플루토게임즈 - 프레지던트 메이커.jpg"},
+{n:5,booth:"크로롬",game:"전투! 용병의 시대 Season2 Off-Road",desc:"전략 카드 배틀 게임. 카드를 공개해 상대방과 펼쳐지는 공방 심리전! 새로운 용병 세인, 유나와 함께 전투에서 승리해보세요!",img:"thumbnails/5. 크로롬 - 전투! 용병의 시대 Season2 Off Road.jpg"},
+{n:6,booth:"DUCKCOON",game:"비버 만세!",desc:"비버 건축가가 되어 나무를 모으고 설계도대로 댐을 완성하세요. 완성한 댐은 연쇄 효과가 되어 더 많은 보상을 줍니다. 10라운드 동안 최고 점수를 노리는 패턴+연쇄 효과 빌딩 게임입니다.",img:"thumbnails/6. DUCKCOON - 비버 만세!.jpg"},
+{n:7,booth:"담포",game:"호랑님 오신 날",desc:"포커기반 반협력 게임 좌유 팀원과 호랑님이 가장 기뻐할 선물 꾸러미를 선물하자!",img:"thumbnails/7. 담포 - 호랑님 오신 날.jpg"},
+{n:8,booth:"KY81",game:"꼬마 농부 수확제",desc:"귀여운 꼬마 돼지 농부들이 5일간 열리는 수확제에서 최고의 수확 바구니를 만들어 아기자기한 햇살 포인트를 주고 받는 포커 기반 엔진 빌딩 게임입니다.",img:"thumbnails/8. KY81 - 꼬마 농부 수확제.jpg"},
+{n:9,booth:"코카트리스",game:"엘리멘탈 코덱스",desc:"마법학교의 졸업시험이 시작되었습니다. 다섯 속성의 신비한 보석을 모아 다양한 소환수를 불러내어 수석 졸업이 되어 보세요!",img:"thumbnails/9. 코카트리스 -엘리멘탈 코덱스.jpg"},
+{n:10,booth:"B'NSHOW GAMES",game:"몬스터누키",desc:"다양한 몬스터 인형을 수집하는 컬렉터가 되어 나만의 컬렉션을 완성해보세요! 상대방이 가지고 있는 인형 카드를 가져와 자신의 인형 컬렉션을 완성하는 도둑잡기 기반의 셋 컬렉션 게임입니다.",img:"thumbnails/10. B'NSHOW GAMES - 몬스터누키.jpg"},
+{n:11,booth:"틴들공방",game:"야수의 심장",desc:"실시간 비딩, 경제학적 지식은 필요 없다! 단타맨들이 펼치는 광기의 증권 시장!",img:"thumbnails/11. 틴들공방 - 야수의 심장.jpg"},
+{n:12,booth:"업앤업",game:"3 DIGIT(쓰리 디지트)",desc:"투명 카드를 겹쳐 목표 숫자를 완성하는 직관적인 숫자 퍼즐 게임입니다. 2~5인이 함께 즐기며, 전략적인 카드 선택과 뒤집기 액션을 통해 누구보다 빠르게 3자리의 숫자를 조합해 보세요!",img:"thumbnails/12. 업앤업 - 3 DIGIT(쓰리 디지트).jpg"},
+{n:13,booth:"오타메이커",game:"난 오타쿠가 아니야!!",desc:"오타쿠감별 파티게임, 캐릭터가 연상되는 단어를 조합해 자신의 최애캐를 말해보자! 알면 알수록 덕후에 가까워지는 당신을 만나보세요!",img:"thumbnails/13. 오타메이커 - 난 오타쿠가 아니야!!.jpg"},
+{n:14,booth:"너트구리",game:"플라멩코",desc:"쉽고, 빠른 템포의 클라이밍 카드 게임입니다. 카드 나누기와 최고의 극찬과 같은 특수 기능으로 더욱 흥미진진한 플라멩코를 즐겨보세요!",img:"thumbnails/14. 너트구리 - 플라멩코.jpg"},
+{n:15,booth:"Ogam",game:"만두필링",desc:"퍼즐 + 전략! 만두 집의 요리사가 되어 고기와 김치, 야채를 적절히 배합하여 다양한 만두속 만들기! 한국 최고의 만두 쉐프가 되어보세요!",img:"thumbnails/15. Ogam - 만두필링.jpg"},
+{n:16,booth:"원눗",game:"매드다이스랩",desc:"주사위, 카드 1장으로 입자 수치를 조작, 50점을 넘으면 실험 실패! 주사위를 던지기 전 깔아둔 보정치가 대박일지 독약일지, 짜릿한 데이터 반전의 탄식을 즐겨보세요!",img:"thumbnails/16. 원눗 - 매드다이스랩.jpg"},
+{n:17,booth:"Touch & Feel",game:"임진 전쟁",desc:"카드 드리븐 방식으로 민심도, 명군 참전 시기, 보급로, 공성전 시스템이 유기적으로 맞물리며, 임진왜란의 역사적 몰입감과 깊이 있는 대전략적 재미를 선사합니다.",img:"thumbnails/17. Touch & Feel - 임진 전쟁.jpg"},
+{n:18,booth:"G B Kim",game:"PEAK",desc:"올드스쿨 스타일 카드 게임",img:"thumbnails/18. G B Kim - PEAK.jpg"},
+{n:19,booth:"ChawonIX",game:"케미몬스터",desc:"한국적 판타지 세계 속에서 모험을 통해 몬스터를 테이밍하고, 다양한 속성과 능력을 지닌 몬스터들을 팀으로 구성해 전투에 배치하여 전투하는, 전략 중심의 오픈월드 RPG 보드게임",img:"thumbnails/19. ChawonIX - 케미몬스터.jpg"},
+{n:20,booth:"히딩의 숲",game:"이데아를 찾아서",desc:"당신이 살고있는 세계는 현실인가요? 가상세계인지 파악하는 소셜 디덕션 게임",img:"thumbnails/20. 히딩의 숲 - 이데아를 찾아서.jpg"},
+{n:21,booth:"교육보드게임협동조합",game:"히스커버리 삼국시대",desc:"삼국시대를 시간순으로 만나다. 한강을 차지하는 자가 삼국을 지배한다! 고구려 신라 백제 삼국의 역사를 시간순으로 병렬로 배치해 한눈에 역사를 보는 게임.",img:"thumbnails/21. 교육보드게임협동조합 - 히스커버리 삼국시대.jpg"},
+{n:22,booth:"3RD GAMES",game:"룸쉐어",desc:"지역 이동 + 득점 조건 완성하기. 손님들에게 좋은 방을 소개하기! 시지지 / 협력. 태양계 행성 재정렬하기",img:"thumbnails/22. 3RD GAMES - 룸쉐어.jpg"},
+{n:23,booth:"목성문고",game:"마술 가게",desc:"찡긋, 윙크를 남긴 투명인간이 타임머신에 탑승하며 말합니다. \"한잔하고 이 카드를 받으세요.\"",img:"thumbnails/23. 목성문고 - 마술 가게.jpg"},
+{n:24,booth:"@rodent_studio",game:"한입만용사!",desc:"4명의 용사가 3단계의 던전을 탐험하여 보스를 처치하는게 목표인 게임입니다. 그러나 중요한 것은 협력하여 보스를 잡는 것보다는 개인 점수인 전리품을 많이 모으는 것이 핵심입니다.",img:"thumbnails/24. rodent_studio - 한입만용사!.jpg"},
+];
+
+const grid=document.getElementById('boothGrid');
+const sortBtns=document.querySelectorAll('.sort-btn');
+let sortMode=localStorage.getItem('sortMode')||'random';
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+function renderGrid(){
+  grid.innerHTML='';
+  const list=sortMode==='number'?[...booths]:shuffle(booths);
+  list.forEach(b=>{
+    const card=document.createElement('div');
+    card.className='booth-card';
+    card.innerHTML=`
+      <img class="thumb" src="${b.img}" alt="${b.game}" loading="lazy">
+      <div class="info">
+        <span class="booth-number">${b.n}번</span>
+        <div class="game-name">${b.game}</div>
+        <div class="booth-name">${b.booth}</div>
+        <div class="desc">${b.desc}</div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  sortBtns.forEach(b=>{
+    b.classList.toggle('active',b.dataset.sort===sortMode);
+  });
+}
+
+sortBtns.forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    sortMode=btn.dataset.sort;
+    localStorage.setItem('sortMode',sortMode);
+    renderGrid();
+  });
+});
+
+renderGrid();
+
+// 카드 클릭 시 텍스트 펼치기/접기
+grid.addEventListener('click',e=>{
+  const card=e.target.closest('.booth-card');
+  if(card) card.classList.toggle('expanded');
+});
+
+// 탭 전환
+document.querySelectorAll('.tab-bar button[data-tab]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+});
+
+// 지도 오버레이
+const overlay=document.getElementById('mapOverlay');
+document.getElementById('mapBtn').addEventListener('click',()=>overlay.classList.add('open'));
+document.getElementById('mapClose').addEventListener('click',()=>overlay.classList.remove('open'));
+overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open')});
+</script>
+</body>
+</html>
