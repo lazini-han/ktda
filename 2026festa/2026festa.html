@@ -273,7 +273,11 @@ renderGrid();
 // 카드 클릭 시 텍스트 펼치기/접기
 grid.addEventListener('click',e=>{
   const card=e.target.closest('.booth-card');
-  if(card) card.classList.toggle('expanded');
+  if(!card) return;
+  card.classList.toggle('expanded');
+  card.style.overflow='hidden';
+  void card.offsetHeight;
+  card.style.overflow='';
 });
 
 // 행사 안내 오버레이
