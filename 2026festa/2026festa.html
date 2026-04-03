@@ -36,15 +36,31 @@
   .banner{width:100%;max-width:720px;margin:0 auto;display:block}
   .banner img{width:100%;display:block}
 
-  /* 행사 안내 탭 */
-  .info-page{
-    min-height:calc(100vh - 48px - 56px);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:32px 20px;text-align:center;
+  /* 행사 안내 오버레이 */
+  .info-overlay{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,.7);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;
+    transition:opacity .25s;
   }
-  .info-page img{width:90%;max-width:640px;display:block;margin-bottom:24px}
-  .info-page h2{font-size:clamp(20px, 4vw, 28px);font-weight:800;color:#e91e63;margin-bottom:16px}
-  .info-page p{font-size:clamp(14px, 2.5vw, 18px);color:#555;line-height:1.8}
+  .info-overlay.open{opacity:1;pointer-events:auto}
+  .info-overlay-inner{
+    width:92%;max-width:540px;background:#fff;border-radius:16px;
+    overflow:hidden;position:relative;
+    transform:translateY(30px);transition:transform .25s;
+    text-align:center;padding-bottom:20px;
+  }
+  .info-overlay.open .info-overlay-inner{transform:translateY(0)}
+  .info-overlay-inner img.info-festa{width:100%;display:block}
+  .info-overlay-inner h2{font-size:clamp(20px, 4vw, 28px);font-weight:800;color:#e91e63;margin:16px 0 12px}
+  .info-overlay-inner p{font-size:clamp(14px, 2.5vw, 18px);color:#555;line-height:1.8;padding:0 16px}
+  .info-overlay-close{
+    position:absolute;top:10px;right:10px;
+    width:32px;height:32px;border-radius:50%;border:none;
+    background:rgba(0,0,0,.5);color:#fff;font-size:18px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
 
   /* 탭 네비게이션 - 하단 고정 */
   .tab-bar{
@@ -63,8 +79,6 @@
 
   /* 컨텐츠 영역 */
   .content{max-width:720px;margin:0 auto}
-  .tab-panel{display:none}
-  .tab-panel.active{display:block}
 
   /* 부스 카드 그리드 */
   .booth-grid{
@@ -149,22 +163,23 @@
 </header>
 
 <div class="content">
-  <div id="tab-info" class="tab-panel">
-    <div class="info-page">
-      <img src="festa.gif" alt="2026 보드게임 페스타">
-      <h2>2026 보드게임페스타</h2>
-      <p>
-        2026. 4. 11(토) ~ 2026. 4. 12(일)<br>
-        (11일: 10시 ~ 18시)<br>
-        (12일: 10시 ~ 17시)<br><br>
-        장소: 서울시 강남구 대치동<br>세텍(학여울역) 1, 2, 3전시실
-      </p>
-    </div>
-  </div>
-  <div id="tab-booths" class="tab-panel active">
-    <div class="banner"><img src="main.jpg" alt="2026 보드게임 페스타 작가존"></div>
-    <div class="booth-grid" id="boothGrid"></div>
-    <div class="banner"><img src="ktda.jpg" alt="한국 보드게임 작가 협회"></div>
+  <div class="banner"><img src="main.jpg" alt="2026 보드게임 페스타 작가존"></div>
+  <div class="booth-grid" id="boothGrid"></div>
+  <a class="banner" href="http://ktdadesign.co.kr/" target="_blank"><img src="ktda.jpg" alt="한국 보드게임 작가 협회"></a>
+</div>
+
+<!-- 행사 안내 오버레이 -->
+<div class="info-overlay" id="infoOverlay">
+  <div class="info-overlay-inner">
+    <button class="info-overlay-close" id="infoClose">&times;</button>
+    <img class="info-festa" src="festa.gif" alt="2026 보드게임 페스타">
+    <h2>2026 보드게임페스타</h2>
+    <p>
+      2026. 4. 11(토) ~ 2026. 4. 12(일)<br>
+      (11일: 10시 ~ 18시)<br>
+      (12일: 10시 ~ 17시)<br><br>
+      장소: 서울시 강남구 대치동<br>세텍(학여울역) 1, 2, 3전시실
+    </p>
   </div>
 </div>
 
@@ -181,8 +196,7 @@
 </div>
 
 <nav class="tab-bar">
-  <button data-tab="tab-info">📢 행사 안내</button>
-  <button data-tab="tab-booths" class="active">🎲 부스 목록</button>
+  <button id="infoBtn">📢 행사 안내</button>
   <button id="mapBtn">🗺️ 부스 지도</button>
 </nav>
 
@@ -261,16 +275,11 @@ grid.addEventListener('click',e=>{
   if(card) card.classList.toggle('expanded');
 });
 
-// 탭 전환
-document.querySelectorAll('.tab-bar button[data-tab]').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-bar button').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-    window.scrollTo({top:0,behavior:'smooth'});
-  });
-});
+// 행사 안내 오버레이
+const infoOverlay=document.getElementById('infoOverlay');
+document.getElementById('infoBtn').addEventListener('click',()=>infoOverlay.classList.add('open'));
+document.getElementById('infoClose').addEventListener('click',()=>infoOverlay.classList.remove('open'));
+infoOverlay.addEventListener('click',e=>{if(e.target===infoOverlay)infoOverlay.classList.remove('open')});
 
 // 지도 오버레이
 const overlay=document.getElementById('mapOverlay');
